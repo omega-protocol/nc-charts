@@ -1,0 +1,7 @@
+{{- range .Values.conf.extensions }}
+---
+apiVersion:
+kind: Extension
+metadata:
+spec:
+{{- end }}
