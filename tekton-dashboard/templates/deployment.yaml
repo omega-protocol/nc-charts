@@ -1,0 +1,87 @@
+{{- define "readinessProbe" }}
+httpGet:
+  scheme: {{ tuple "tekton_dashboard" "internal" "web" $ | include "helm-toolkit.endpoints.keystone_endpoint_scheme_lookup" | upper }}
+  path: /readiness
+  port: {{ tuple "tekton_dashboard" "internal" "web" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+{{- end }}
+{{- define "livenessProbe" }}
+httpGet:
+  scheme: {{ tuple "tekton_dashboard" "internal" "web" $ | include "helm-toolkit.endpoints.keystone_endpoint_scheme_lookup" | upper }}
+  path: /health
+  port: {{ tuple "tekton_dashboard" "internal" "web" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+{{- end }}
+{{- if $.Values.manifests.deployment }}
+{{- $mount_dashboard := $.Values.pod.mounts.tekton_dashboard.tekton_dashboard -}}
+{{- $mount_dashboard_init := $.Values.pod.mounts.tekton_dashboard.init_container -}}
+{{- $serviceAccountName := "tekton-dashboard" -}}
+{{- $applicationName := "tekton-dashboard" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $applicationName }}
+  annotations:
+    {{ tuple $ | include "helm-toolkit.snippets.release_uuid" }}
+  labels:
+{{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 4 }}
+spec:
+  replicas: {{ $.Values.pod.replicas.dashboard }}
+  selector:
+    matchLabels:
+{{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 6 }}
+{{- tuple $ | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | nindent 2 }}
+  template:
+    metadata:
+      labels:
+{{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 8 }}
+      annotations:
+{{- tuple $ | include "helm-toolkit.snippets.release_uuid" | nindent 8 }}
+{{- dict "envAll" $ "podName" "horizon" "containerNames" (list "horizon" "init" ) | include "helm-toolkit.snippets.kubernetes_mandatory_access_control_annotation" | nindent 8 }}
+    spec:
+      serviceAccountName: {{ $serviceAccountName }}
+{{ dict "envAll" $ "application" "tekton_dashboard" | include "helm-toolkit.snippets.kubernetes_pod_security_context" | indent 6 }}
+      affinity:
+{{- tuple $ "horizon" "server" | include "helm-toolkit.snippets.kubernetes_pod_anti_affinity" | nindent 8 }}
+      nodeSelector:
+        {{ $.Values.labels.tekton_dashboard.node_selector_key }}: {{ $.Values.labels.tekton_dashboard.node_selector_value }}
+      terminationGracePeriodSeconds: {{ $.Values.pod.lifecycle.termination_grace_period.dashboard.timeout | default "30" }}
+      initContainers:
+{{- tuple $ "teckton_dashboard" $mount_dashboard_init | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | nindent 8 }}
+      containers:
+        - name: tekton-dashboard
+{{- tuple $ "tekton_dashboard" | include "helm-toolkit.snippets.image" | nindent 10 }}
+{{- tuple $ $.Values.pod.resources.tekton_dashboard | include "helm-toolkit.snippets.kubernetes_resources" | nindent 10 }}
+          args:
+          - --port={{ tuple "tekton-dashboard" "internal" "web" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+          - --logout-url={{ $.Values.conf.args.logout_url }}
+          - --pipelines-namespace={{ $.Release.Namespace }}
+          - --triggers-namespace={{ $.Release.Namespace }}
+          - --read-only={{ $.Values.conf.args.read_only }}
+          - --csrf-secure-cookie={{ $.Values.conf.args.csrf_secure_cookie }}
+          - --log-level={{ $.Values.conf.args.log_level }}
+          - --log-format={{ $.Values.conf.args.log_format }}
+          - --namespace={{ $.Values.conf.args.namespace }}
+          - --openshift={{ $.Values.conf.args.openshift }}
+          - --stream-logs={{ $.Values.conf.args.stream_logs }}
+          - --external-logs={{ $.Values.conf.args.external_logs }}
+          env:
+            - name: INSTALLED_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: web
+              containerPort: {{ tuple "tekton-dashboard" "internal" "web" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+{{- dict "envAll" $ "component" "tekton_dashboard" "container" "tekton_dashboard" "type" "readiness" "probeTemplate" (include "readinessProbe" $ | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | nindent 10 }}
+{{- dict "envAll" $ "component" "tekton_dashboard" "container" "tekton_dashboard" "type" "liveness" "probeTemplate" (include "livenessProbe" $ | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | nindent 10 }}
+{{- if $mount_dashboard.volumeMounts }}
+          volumeMounts:
+{{ toYaml $mount_dashboard.volumeMounts | indent 12 }}
+{{- end }}
+{{- if $mount_dashboard.volumes }}
+      volumes:
+{{ toYaml $mount_dashboard.volumes | indent 8 }}
+{{- else }}
+      volumes: []
+{{- end }}
+{{- end }}

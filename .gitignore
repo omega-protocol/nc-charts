@@ -1,0 +1,23 @@
+# General files for the project
+pkg/*
+*.pyc
+bin/*
+.project
+/.bin
+/_test/secrets/*.json
+
+# OSX leaves these everywhere on SMB shares
+._*
+
+# Chart dependencies
+**/charts/*.tgz
+
+.history
+*.tgz
+*.tar.gz
+
+helm-toolkit
+actual.yaml
+ref.yaml
+
+*.lock
