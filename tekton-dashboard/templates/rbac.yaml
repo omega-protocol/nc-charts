@@ -1,5 +1,4 @@
 {{- define "rbac_label" -}}
-labels:
   app.kubernetes.io/component: {{ index . "component" }}
   app.kubernetes.io/part-of: {{ index . "part_of" }}
 {{- end -}}
@@ -11,14 +10,16 @@ labels:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}
   namespace: {{ $.Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-backend
 rules:
 - apiGroups:
@@ -84,7 +85,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-dashboard
 rules:
 - apiGroups:
@@ -101,13 +103,15 @@ aggregationRule:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-extensions
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-pipelines
 rules:
 - apiGroups:
@@ -120,7 +124,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-tenant
 rules:
 - apiGroups:
@@ -232,7 +237,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-triggers
 rules:
 - apiGroups:
@@ -245,7 +251,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-backend
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -259,7 +266,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-pipelines
   namespace: tekton-pipelines
 roleRef:
@@ -274,7 +282,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-dashboard
   namespace: tekton-pipelines
 roleRef:
@@ -289,7 +298,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-triggers
   namespace: tekton-pipelines
 roleRef:
@@ -304,7 +314,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-tenant
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -318,7 +329,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-{{- $opts | include "rbac_label" | nindent 2 }}
+  labels:
+{{- $opts | include "rbac_label" | nindent 4 }}
   name: {{ $saName }}-extensions
 roleRef:
   apiGroup: rbac.authorization.k8s.io

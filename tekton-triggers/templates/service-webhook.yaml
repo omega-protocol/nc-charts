@@ -1,0 +1,24 @@
+{{- if .Values.manifests.service_webhook }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tekton-triggers-webhook
+spec:
+  selector:
+{{ tuple $ "tekton-triggers" "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
+  {{- if $.Values.network.node_port.enabled }}
+  type: NodePort
+  {{- if $.Values.network.external_policy_local }}
+  externalTrafficPolicy: Local
+  {{- end }}
+  {{- end }}
+  ports:
+  - name: https-webhook
+    protocol: TCP
+    port: {{ tuple "tekton-triggers" "internal" "webhook" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+    targetPort:  {{ tuple "tekton-triggers" "target" "webhook" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+    {{- if $.Values.network.node_port.enabled }}
+    nodePort: {{ $.Values.network.node_port.port }}
+    {{- end }}
+{{- end }}

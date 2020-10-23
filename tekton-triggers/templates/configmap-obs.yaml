@@ -1,0 +1,9 @@
+{{- if $.Values.manfiests.configmap_observability }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-observability-triggers
+data:
+{{- $.Values.conf.observability | toYaml | nindent 2 }}
+{{- end }}
