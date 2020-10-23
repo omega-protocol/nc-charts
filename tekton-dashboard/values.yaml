@@ -23,7 +23,8 @@ dependencies:
       services:
         - endpoint: internal
           service: local_image_registry
-    tekton_dashboard: []
+    tekton_dashboard:
+      services: []
 endpoints:
   cluster_domain_suffix: cluster.local
   local_image_registry:

@@ -1,26 +1,23 @@
-{{- define "rbac_label" -}}
-  app.kubernetes.io/component: {{ index . "component" }}
-  app.kubernetes.io/part-of: {{ index . "part_of" }}
-{{- end -}}
-
 {{- if $.Values.manifests.rbac }}
-{{- $saName := "tekton-dashboard" -}}
-{{- $opts := dict "component" "dashboard" "part_of" "tekton-dashboard" -}}
+{{- $component := "dashboard" -}}
+{{- $partof := "tekton-dashboard" -}}
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard
   namespace: {{ $.Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-backend
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-backend
 rules:
 - apiGroups:
   - apiextensions.k8s.io
@@ -86,8 +83,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-dashboard
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-dashboard
 rules:
 - apiGroups:
   - apps
@@ -104,15 +102,17 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-extensions
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-extensions
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-pipelines
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-pipelines
 rules:
 - apiGroups:
   - apps
@@ -125,8 +125,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-tenant
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-tenant
 rules:
 - apiGroups:
   - ""
@@ -238,8 +239,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-triggers
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-triggers
 rules:
 - apiGroups:
   - apps
@@ -252,92 +254,98 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-backend
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-backend
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ $saName }}-backend
+  name: tekton-dashboard-backend
 subjects:
 - kind: ServiceAccount
-  name: {{ $saName }}
+  name: tekton-dashboard
   namespace: {{ $.Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-pipelines
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-pipelines
   namespace: tekton-pipelines
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ $saName }}-pipelines
+  name: tekton-dashboard-pipelines
 subjects:
   - kind: ServiceAccount
-    name: {{ $saName }}
+    name: tekton-dashboard
     namespace: {{ $.Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-dashboard
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-dashboard
   namespace: tekton-pipelines
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ $saName }}-dashboard
+  name: tekton-dashboard-dashboard
 subjects:
   - kind: ServiceAccount
-    name: {{ $saName }}
+    name: tekton-dashboard
     namespace: {{ $.Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-triggers
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-triggers
   namespace: tekton-pipelines
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ $saName }}-triggers
+  name: tekton-dashboard-triggers
 subjects:
   - kind: ServiceAccount
-    name: {{ $saName }}
+    name: tekton-dashboard
     namespace: {{ $.Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-tenant
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-tenant
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ $saName }}-tenant
+  name: tekton-dashboard-tenant
 subjects:
   - kind: ServiceAccount
-    name: {{ $saName }}
+    name: tekton-dashboard
     namespace: {{ $.Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-extensions
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-dashboard-extensions
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ $saName }}-extensions
+  name: tekton-dashboard-extensions
 subjects:
   - kind: ServiceAccount
-    name: {{ $saName }}
+    name: tekton-dashboard
     namespace: {{ $.Release.Namespace }}
 {{- end }}

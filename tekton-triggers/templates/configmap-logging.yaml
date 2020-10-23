@@ -1,4 +1,4 @@
-{{- if $.Values.manfiests.configmap_logging }}
+{{- if $.Values.manifests.configmap_logging }}
 ---
 apiVersion: v1
 kind: ConfigMap

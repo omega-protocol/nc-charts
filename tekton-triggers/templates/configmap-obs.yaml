@@ -1,4 +1,4 @@
-{{- if $.Values.manfiests.configmap_observability }}
+{{- if $.Values.manifests.configmap_observability }}
 ---
 apiVersion: v1
 kind: ConfigMap

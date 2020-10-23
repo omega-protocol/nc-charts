@@ -28,7 +28,7 @@ spec:
     spec:
       serviceAccountName: {{ $serviceAccountName }}
       affinity:
-{{- tuple $ "horizon" "server" | include "helm-toolkit.snippets.kubernetes_pod_anti_affinity" | nindent 8 }}
+{{- tuple $ "tekton_triggers" "controller" | include "helm-toolkit.snippets.kubernetes_pod_anti_affinity" | nindent 8 }}
       nodeSelector:
         {{ $.Values.labels.tekton_controller.node_selector_key }}: {{ $.Values.labels.tekton_controller.node_selector_value }}
       terminationGracePeriodSeconds: {{ $.Values.pod.lifecycle.termination_grace_period.controller.timeout | default "30" }}
@@ -43,13 +43,13 @@ spec:
           - -stderrthreshold
           - INFO
           - -el-image
-          - {{ .Values.images.tags.tekton_eventlistener }}
+          - {{ $.Values.images.tags.tekton_eventlistener }}
           - -el-port
           - {{ 8080 }}
           - -period-seconds
-          - "10"
-          - -falure-threshold
-          - "1"
+          - {{ $.Values.conf.controller.period_seconds | quote }}
+          - -failure-threshold
+          - {{ $.Values.conf.controller.failure_threshold | quote }}
           env:
             - name: SYSTEM_NAMESPACE
               valueFrom:
@@ -63,7 +63,7 @@ spec:
               value: tekton.dev/triggers
           ports:
             - name: web
-              containerPort: {{ tuple "tekton-controller" "internal" "web" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+              containerPort: {{ tuple "tekton-triggers" "internal" "metrics" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
 {{- if $mount_controller.volumeMounts }}
           volumeMounts:
 {{ toYaml $mount_controller.volumeMounts | indent 12 }}

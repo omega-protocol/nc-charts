@@ -1,39 +1,37 @@
 ---
 conf:
-  extensions: []
-  example:
+  controller:
+    period_seconds: 10
+    failure_threshold: 1
+  loglevel:
+    controller: info
+    eventlistener: info
+    webhook: info
   observability:
-    # These are sample values
     metrics.backend-destination: prometheus
-    # metrics.allow-stackdriver-custom-metrics: "false"
   zap_logger_config:
-    level: info
     development: false
+    encoderConfig:
+      callerEncoder: ''
+      callerKey: caller
+      durationEncoder: ''
+      levelEncoder: ''
+      levelKey: level
+      lineEnding: ''
+      messageKey: msg
+      nameKey: logger
+      stacktraceKey: stacktrace
+      timeEncoder: ''
+      timeKey: ''
+    encoding: json
+    errorOutputPaths:
+      - stderr
+    level: info
+    outputPaths:
+      - stdout
     sampling:
       initial: 100
       thereafter: 100
-    outputPaths:
-      - stdout
-    errorOutputPaths:
-      - stderr
-    encoding: json
-    encoderConfig:
-      timeKey: ""
-      levelKey: level
-      nameKey: logger
-      callerKey: caller
-      messageKey: msg
-      stacktraceKey: stacktrace
-      lineEnding: ""
-      levelEncoder: ""
-      timeEncoder: ""
-      durationEncoder: ""
-      callerEncoder: ""
-  loglevel:
-    controller: info
-    webhook: info
-    eventlistener: info
-
 dependencies:
   dynamic:
     common:
@@ -46,7 +44,10 @@ dependencies:
       services:
         - endpoint: internal
           service: local_image_registry
-    tekton_dashboard: []
+    tekton_controller:
+      services: []
+    tekton_webhook:
+      services: []
 endpoints:
   cluster_domain_suffix: cluster.local
   local_image_registry:
@@ -71,11 +72,11 @@ endpoints:
     path:
       default: null
     port:
+      metrics:
+        default: 9090
       webhook:
         default: 443
         target: 8443
-      metrics:
-        default: 9090
     scheme:
       default: http
 images:
@@ -88,22 +89,28 @@ images:
   tags:
     dep_check: 'quay.io/airshipit/kubernetes-entrypoint:v1.0.0'
     image_repo_sync: 'docker.io/docker:17.07.0'
-    tekton_controller: "gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/controller:v0.9.1@sha256:89e105cacb853ef8866baf0e2f0030651ec719e9bdc7cf56972edbd68dbd4779"
-    tekton_webhook: "gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/webhook:v0.9.1@sha256:496bea4b0524c21be6bfe4eb5e99f92119cea3e58a93ed06a76536d7a1d9032c"
-    tekton_eventlistener: "gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/eventlistenersink:v0.9.1@sha256:b687fc18b818f6e031083735b1833e6db3ba18d5113cfdc1ec8eb3c980e0f67d"
+    tekton_controller: 'gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/controller:v0.9.1@sha256:89e105cacb853ef8866baf0e2f0030651ec719e9bdc7cf56972edbd68dbd4779'
+    tekton_eventlistener: 'gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/eventlistenersink:v0.9.1@sha256:b687fc18b818f6e031083735b1833e6db3ba18d5113cfdc1ec8eb3c980e0f67d'
+    tekton_webhook: 'gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/webhook:v0.9.1@sha256:496bea4b0524c21be6bfe4eb5e99f92119cea3e58a93ed06a76536d7a1d9032c'
 jobs: null
 labels:
-  tekton_dashboard:
-    node_selector_key: teckton
+  tekton_controller:
+    node_selector_key: teckton_controller
+    node_selector_value: enabled
+  tekton_webhook:
+    node_selector_key: teckton_webhook
     node_selector_value: enabled
 manifests:
-  deployment: true
+  configmap_logging: true
+  configmap_observability: true
+  deployment_controller: true
+  deployment_webhook: true
   ingress: true
   poddisruptionbudget: false
+  podsecuritypolicy: true
   rbac: true
   service_metrics: true
   service_webhook: true
-  podsecuritypolicy: true
 network:
   dashboard:
     ingress:
@@ -131,7 +138,9 @@ pod:
       dashboard:
         min_available: 0
     termination_grace_period:
-      dashboard:
+      controller:
+        timeout: 30
+      webhook:
         timeout: 30
     upgrades:
       deployments:
@@ -141,20 +150,21 @@ pod:
           max_surge: 3
           max_unavailable: 1
   mounts:
-    tekton_webhook:
-      init_container: null
-      tekton_webhook:
-        volumeMounts: null
-        volumes: null
     tekton_controller:
       init_container: null
       tekton_controller:
+        volumeMounts: null
+        volumes: null
+    tekton_webhook:
+      init_container: null
+      tekton_webhook:
         volumeMounts: null
         volumes: null
   replicas:
     controller: 1
     webhook: 1
   resources:
+    enabled: false
     tekton_dashboard:
       limits:
         cpu: 2000m
@@ -162,7 +172,6 @@ pod:
       requests:
         cpu: 100m
         memory: 128Mi
-    enabled: false
   security_context:
     tekton_dashboard:
       pod:

@@ -40,7 +40,7 @@ spec:
       serviceAccountName: {{ $serviceAccountName }}
 {{ dict "envAll" $ "application" "tekton_dashboard" | include "helm-toolkit.snippets.kubernetes_pod_security_context" | indent 6 }}
       affinity:
-{{- tuple $ "horizon" "server" | include "helm-toolkit.snippets.kubernetes_pod_anti_affinity" | nindent 8 }}
+{{- tuple $ "tekton_dashboard" "server" | include "helm-toolkit.snippets.kubernetes_pod_anti_affinity" | nindent 8 }}
       nodeSelector:
         {{ $.Values.labels.tekton_dashboard.node_selector_key }}: {{ $.Values.labels.tekton_dashboard.node_selector_value }}
       terminationGracePeriodSeconds: {{ $.Values.pod.lifecycle.termination_grace_period.dashboard.timeout | default "30" }}

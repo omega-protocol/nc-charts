@@ -1,4 +1,0 @@
-{{- if ( and $.Values.manifests.ingress $.Values.network.dashboard.ingress.public ) }}
-{{- $opts := dict "envAll" $ "backendService" "dashboard" "backendServiceType" "tekton-dashboard" "backendPort" "web" -}}
-{{ $opts | include "helm-toolkit.manifests.ingress" }}
-{{- end }}

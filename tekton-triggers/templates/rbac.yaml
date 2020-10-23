@@ -1,77 +1,154 @@
-{{- define "rbac_label" -}}
-  app.kubernetes.io/component: {{ index . "component" }}
-  app.kubernetes.io/part-of: {{ index . "part_of" }}
-{{- end -}}
-
 {{- if $.Values.manifests.rbac }}
-{{- $saName := "tekton-triggers" -}}
-{{- $opts := dict "component" "triggers" "part_of" "tekton-triggers" -}}
+{{- $component := "triggers" -}}
+{{- $partof := "tekton-triggers" -}}
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-controller
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-triggers-controller
   namespace: {{ $.Release.Namespace }}
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-admin
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-triggers-admin
 rules:
   - apiGroups:
-    - ""
-    resources: ["configmaps", "services", "events"]
-    verbs: ["get", "list", "create", "update", "delete", "patch", "watch"]
-  - apiGroups: ["apps"]
-    resources: ["deployments", "deployments/finalizers"]
-    verbs: ["get", "list", "create", "update", "delete", "patch", "watch"]
-  - apiGroups: ["admissionregistration.k8s.io"]
-    resources: ["mutatingwebhookconfigurations", "validatingwebhookconfigurations"]
-    verbs: ["get", "list", "create", "update", "delete", "patch", "watch"]
-  - apiGroups: ["triggers.tekton.dev"]
-    resources: ["clustertriggerbindings", "eventlisteners", "triggerbindings", "triggertemplates", "triggers", "eventlisteners/finalizers"]
-    verbs: ["get", "list", "create", "update", "delete", "patch", "watch"]
-  - apiGroups: ["triggers.tekton.dev"]
-    resources: ["clustertriggerbindings/status", "eventlisteners/status", "triggerbindings/status", "triggertemplates/status", "triggers/status"]
-    verbs: ["get", "list", "create", "update", "delete", "patch", "watch"]
-  - apiGroups: ["coordination.k8s.io"]
-    resources: ["leases"]
-    verbs: ["get", "list", "create", "update", "delete", "patch", "watch"]
+    - "*"
+    resources:
+    - configmaps
+    - services
+    - events
+    verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+  - apiGroups:
+    - apps
+    resources:
+    - deployments
+    - deployments/finalizers
+    verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+  - apiGroups:
+    - admissionregistration.k8s.io
+    resources:
+    - mutatingwebhookconfigurations
+    - validatingwebhookconfigurations
+    verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+  - apiGroups:
+    - triggers.tekton.dev
+    resources:
+    - clustertriggerbindings
+    - eventlisteners
+    - triggerbindings
+    - triggertemplates
+    - triggers
+    - eventlisteners/finalizers
+    verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+  - apiGroups:
+    - triggers.tekton.dev
+    resources:
+    - clustertriggerbindings/status
+    - eventlisteners/status
+    - triggerbindings/status
+    - triggertemplates/status
+    - triggers/status
+    verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+  - apiGroups:
+    - coordination.k8s.io
+    resources:
+    - leases
+    verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4}}
-  name: {{ $saName }}-admin
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-triggers-admin
   namespace: {{ $.Release.Namespace }}
 rules:
-  - apiGroups: ["policy"]
-    resources: ["podsecuritypolicies"]
-    resourceNames: ["tekton-triggers"]
-    verbs: ["use"]
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["get", "list", "create", "update", "delete", "patch", "watch"]
-{{- end }}
+  - apiGroups:
+    - policy
+    resources:
+    - podsecuritypolicies
+    resourceNames:
+    - tekton-triggers
+    verbs:
+    - use
+  - apiGroups:
+    - "*"
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
-  name: {{ $saName }}-controller-admin
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
+  name: tekton-triggers-controller-admin
 roleRef:
   kind: ClusterRole
-  name: {{ $saName }}-admin
+  name: tekton-triggers-admin
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount
-    name: {{ $saName }}-controller
+    name: tekton-triggers-controller
     namespace: {{ $.Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -97,7 +174,8 @@ kind: ClusterRole
 metadata:
   name: tekton-triggers-aggregate-edit
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
     rbac.authorization.k8s.io/aggregate-to-admin: "true"
 rules:
@@ -124,7 +202,8 @@ kind: ClusterRole
 metadata:
   name: tekton-triggers-aggregate-view
   labels:
-{{- $opts | include "rbac_label" | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $partof }}
     rbac.authorization.k8s.io/aggregate-to-view: "true"
 rules:
   - apiGroups:
@@ -139,5 +218,4 @@ rules:
       - get
       - list
       - watch
-
 {{- end }}

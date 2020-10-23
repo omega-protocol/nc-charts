@@ -44,9 +44,11 @@ clean:
 	rm -f *tgz */charts/*tgz */requirements.lock
 	rm -rf */charts */tmpcharts
 
-.PHONY: r
-r:
+.PHONY: d t
+d:
 	$(HELM) template tekton-dashboard tekton-dashboard -n tekton-pipelines
+t:
+	$(HELM) template tekton-triggers tekton-triggers -n tekton-pipelines
 
 co:
 	git add --all && git amend --no-edit && git fp
