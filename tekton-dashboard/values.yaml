@@ -1,6 +1,5 @@
 ---
 conf:
-  extensions: []
   args:
     read_only: false
     logout_url: ""

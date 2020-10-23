@@ -7,13 +7,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $applicationName }}
+  name: {{ $applicationName }}-webhook
   annotations:
     {{ tuple $ | include "helm-toolkit.snippets.release_uuid" }}
   labels:
 {{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 4 }}
 spec:
-  replicas: {{ $.Values.pod.replicas.dashboard }}
+  replicas: {{ $.Values.pod.replicas.webhook }}
   selector:
     matchLabels:
 {{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 6 }}
@@ -23,6 +23,7 @@ spec:
       labels:
 {{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 8 }}
       annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
 {{- tuple $ | include "helm-toolkit.snippets.release_uuid" | nindent 8 }}
     spec:
       serviceAccountName: {{ $serviceAccountName }}
@@ -52,8 +53,13 @@ spec:
             - name: METRICS_DOMAIN
               value: tekton.dev/triggers
           ports:
-            - name: web
-              containerPort: {{ tuple "tekton-triggers" "internal" "webhook" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+            - name: metrics
+              containerPort: {{ tuple "tekton-triggers" "internal" "metrics" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+            - name: profiling
+              containerPort: {{ tuple "tekton-triggers" "internal" "profiling" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+            - name: https-webhook
+              containerPort: {{ tuple "tekton-triggers" "target" "webhook" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+{{- dict "envAll" $ "application" "tekton_triggers" "container" "webhook" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
 {{- if $mount_webhook.volumeMounts }}
           volumeMounts:
 {{ toYaml $mount_webhook.volumeMounts | indent 12 }}

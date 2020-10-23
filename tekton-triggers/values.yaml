@@ -3,6 +3,8 @@ conf:
   controller:
     period_seconds: 10
     failure_threshold: 1
+    stderrthreshold: INFO
+    el_port: 8080
   loglevel:
     controller: info
     eventlistener: info
@@ -74,6 +76,8 @@ endpoints:
     port:
       metrics:
         default: 9090
+      profiling:
+        default: 8008
       webhook:
         default: 443
         target: 8443
@@ -109,6 +113,7 @@ manifests:
   poddisruptionbudget: false
   podsecuritypolicy: true
   rbac: true
+  secret: true
   service_metrics: true
   service_webhook: true
 network:
@@ -173,9 +178,13 @@ pod:
         cpu: 100m
         memory: 128Mi
   security_context:
-    tekton_dashboard:
-      pod:
-        runAsNonRoot: true
-        runAsUser: 65532
+    tekton_triggers:
+      container:
+        controller:
+          allowPrivilegeEscalation: false
+          runAsUser: 65532
+        webhook:
+          allowPrivilegeEscalation: false
+          runAsUser: 65532
 release_group: null
 secrets: null
