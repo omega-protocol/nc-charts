@@ -1,22 +1,15 @@
-{{- if $.Values.manifests.rbac }}
-{{- $component := "dashboard" -}}
-{{- $partof := "tekton-dashboard" -}}
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
-  name: tekton-dashboard
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
+  name: {{ template "helpers.labels.fullname" . }}
   namespace: {{ $.Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-backend
 rules:
 - apiGroups:
@@ -82,9 +75,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-dashboard
 rules:
 - apiGroups:
@@ -101,17 +92,14 @@ aggregationRule:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
+
   name: tekton-dashboard-extensions
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-pipelines
 rules:
 - apiGroups:
@@ -124,9 +112,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-tenant
 rules:
 - apiGroups:
@@ -238,9 +224,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-triggers
 rules:
 - apiGroups:
@@ -253,9 +237,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-backend
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -269,9 +251,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-pipelines
   namespace: tekton-pipelines
 roleRef:
@@ -286,9 +266,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-dashboard
   namespace: tekton-pipelines
 roleRef:
@@ -303,9 +281,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-triggers
   namespace: tekton-pipelines
 roleRef:
@@ -320,9 +296,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-tenant
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -336,9 +310,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-extensions
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -348,4 +320,3 @@ subjects:
   - kind: ServiceAccount
     name: tekton-dashboard
     namespace: {{ $.Release.Namespace }}
-{{- end }}

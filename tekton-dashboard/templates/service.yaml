@@ -1,14 +1,10 @@
-{{- if .Values.manifests.service }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: tekton-dashboard
 spec:
-  selector:
-    release_group: {{ $.Values.release_group | default $.Release.Name }}
-    application: "tekton-dashboard"
-    component: "server"
+  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 4 }}
   {{- if $.Values.network.node_port.enabled }}
   type: NodePort
   {{- if $.Values.network.external_policy_local }}
@@ -18,9 +14,8 @@ spec:
   ports:
   - name: web
     protocol: TCP
-    port: {{ tuple "tekton-dashboard" "internal" "web" $ | include "tekton.port_lookup" }}
-    targetPort:  {{ tuple "tekton-dashboard" "internal" "web" $ | include "tekton.port_lookup" }}
+    port: {{ $.Values.params.endpoints.ports.web.port }}
+    targetPort:  {{ $.Values.params.endpoints.ports.web.port }}
     {{- if $.Values.network.node_port.enabled }}
     nodePort: {{ $.Values.network.node_port.port }}
     {{- end }}
-{{- end }}

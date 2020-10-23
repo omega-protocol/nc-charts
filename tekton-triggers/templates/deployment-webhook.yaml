@@ -1,22 +1,13 @@
-{{- if $.Values.manifests.deployment_webhook }}
-{{- $serviceAccountName := "tekton-triggers-webhook" -}}
-{{- $applicationName := "tekton-triggers" -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $applicationName }}-webhook
-  labels:
-    release_group: {{ $.Values.release_group | default $.Release.Name }}
-    application: "tekton-triggers"
-    component: "webhook"
+  name: {{ template "helpers.labels.fullname" $ }}-webhook
+  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
 spec:
   replicas: {{ $.Values.pod.replicas.webhook }}
   selector:
-    matchLabels:
-      release_group: {{ $.Values.release_group | default $.Release.Name }}
-      application: "tekton-triggers"
-      component: "webhook"
+    matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 6 }}
 {{- with $.Values.pod.lifecycle.upgrades.deployments }}
   revisionHistoryLimit: {{ .revision_history }}
   strategy:
@@ -29,27 +20,21 @@ spec:
 {{- end }}
   template:
     metadata:
-      labels:
-        release_group: {{ $.Values.release_group | default $.Release.Name }}
-        application: "tekton-triggers"
-        component: "webhook"
+      labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 8 }}
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
     spec:
-      serviceAccountName: {{ $serviceAccountName }}
+      serviceAccountName: {{ template "helpers.labels.fullname" . }}
       affinity:
 {{- tuple $ "tekton_triggers" "webhook" | include "tekton.pod_anti_affinity" | nindent 8 }}
       nodeSelector:
-        {{ $.Values.labels.tekton_webhook.node_selector_key }}: {{ $.Values.labels.tekton_webhook.node_selector_value }}
+{{- include "helpers.pod.node_selector" ( dict "Global" $ "Application" "tekton_webhook" ) | nindent 8 }}
       terminationGracePeriodSeconds: {{ $.Values.pod.lifecycle.termination_grace_period.webhook.timeout | default "30" }}
       containers:
         - name: tekton-triggers-webhook
-          image: {{ index $.Values.images.tags.tekton_webhook | quote }}
-          imagePullPolicy: {{ $.Values.images.pull_policy }}
-        {{- if $.Values.pod.resources.enabled }}
-          resources:
-{{ toYaml $.Values.pod.resources.tekton_webhook | trim | indent 12 }}
-        {{- end }}
+          image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_webhook" ) }}
+          imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
+{{- include "helpers.container.resources" ( dict "Global" $ "Application" "tekton_webhook" ) | nindent 10 }}
           env:
             - name: SYSTEM_NAMESPACE
               valueFrom:
@@ -65,13 +50,12 @@ spec:
               value: tekton.dev/triggers
           ports:
             - name: metrics
-              containerPort: {{ tuple "tekton-triggers" "internal" "metrics" $ | include "tekton.port_lookup" }}
+              containerPort: {{ $.Values.params.endpoints.ports.metrics.port }}
             - name: profiling
-              containerPort: {{ tuple "tekton-triggers" "internal" "profiling" $ | include "tekton.port_lookup" }}
+              containerPort: {{ $.Values.params.endpoints.ports.profiling.port }}
             - name: https-webhook
-              containerPort: {{ tuple "tekton-triggers" "target" "webhook" $ | include "tekton.port_lookup" }}
+              containerPort: {{ $.Values.params.endpoints.ports.webhook.target }}
           securityContext:
             allowPrivilegeEscalation: false
             runAsUser: 65532
       volumes: []
-{{- end }}

@@ -1,22 +1,13 @@
-{{- if $.Values.manifests.deployment }}
-{{- $serviceAccountName := "tekton-dashboard" -}}
-{{- $applicationName := "tekton-dashboard" -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $applicationName }}
-  labels:
-    release_group: {{ $.Values.release_group | default $.Release.Name }}
-    application: "tekton-dashboard"
-    component: "server"
+  name: {{ template "helpers.labels.fullname" $ }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
 spec:
   replicas: {{ $.Values.pod.replicas.dashboard }}
   selector:
-    matchLabels:
-      release_group: {{ $.Values.release_group | default $.Release.Name }}
-      application: "tekton-dashboard"
-      component: "server"
+    matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 6 }}
 {{- with $.Values.pod.lifecycle.upgrades.deployments }}
   revisionHistoryLimit: {{ .revision_history }}
   strategy:
@@ -29,41 +20,35 @@ spec:
 {{- end }}
   template:
     metadata:
-      labels:
-        release_group: {{ $.Values.release_group | default $.Release.Name }}
-        application: "tekton-dashboard"
-        component: "server"
+      labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 8 }}
     spec:
-      serviceAccountName: {{ $serviceAccountName }}
+      serviceAccountName: {{ template "helpers.labels.fullname" . }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
       affinity:
 {{- tuple $ "tekton_dashboard" "server" | include "tekton.pod_anti_affinity" | nindent 8 }}
       nodeSelector:
-        {{ $.Values.labels.tekton_dashboard.node_selector_key }}: {{ $.Values.labels.tekton_dashboard.node_selector_value }}
+{{- include "helpers.pod.node_selector" ( dict "Global" $ "Application" "tekton_dashboard" ) | nindent 8 }}
       terminationGracePeriodSeconds: {{ $.Values.pod.lifecycle.termination_grace_period.dashboard.timeout | default "30" }}
       containers:
         - name: tekton-dashboard
-          image: {{ index $.Values.images.tags.tekton_dashboard | quote }}
-          imagePullPolicy: {{ $.Values.images.pull_policy }}
-        {{- if $.Values.pod.resources.enabled }}
-          resources:
-{{ toYaml $.Values.pod.resources.tekton_dashboard | trim | indent 12 }}
-        {{- end }}
+          image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_dashboard" ) }}
+          imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
+{{- include "helpers.container.resources" ( dict "Global" $ "Application" "tekton_dashboard" ) | nindent 10 }}
           args:
-          - --port={{ tuple "tekton-dashboard" "internal" "web" $ | include "tekton.port_lookup" }}
-          - --logout-url={{ $.Values.conf.args.logout_url }}
+          - --port={{ $.Values.params.endpoints.ports.web.port }}
+          - --logout-url={{ $.Values.config.args.logout_url }}
           - --pipelines-namespace={{ $.Release.Namespace }}
           - --triggers-namespace={{ $.Release.Namespace }}
-          - --read-only={{ $.Values.conf.args.read_only }}
-          - --csrf-secure-cookie={{ $.Values.conf.args.csrf_secure_cookie }}
-          - --log-level={{ $.Values.conf.args.log_level }}
-          - --log-format={{ $.Values.conf.args.log_format }}
-          - --namespace={{ $.Values.conf.args.namespace }}
-          - --openshift={{ $.Values.conf.args.openshift }}
-          - --stream-logs={{ $.Values.conf.args.stream_logs }}
-          - --external-logs={{ $.Values.conf.args.external_logs }}
+          - --read-only={{ $.Values.config.args.read_only }}
+          - --csrf-secure-cookie={{ $.Values.config.args.csrf_secure_cookie }}
+          - --log-level={{ $.Values.config.args.log_level }}
+          - --log-format={{ $.Values.config.args.log_format }}
+          - --namespace={{ $.Values.config.args.namespace }}
+          - --openshift={{ $.Values.config.args.openshift }}
+          - --stream-logs={{ $.Values.config.args.stream_logs }}
+          - --external-logs={{ $.Values.config.args.external_logs }}
           env:
             - name: INSTALLED_NAMESPACE
               valueFrom:
@@ -71,22 +56,21 @@ spec:
                   fieldPath: metadata.namespace
           ports:
             - name: web
-              containerPort: {{ tuple "tekton-dashboard" "internal" "web" $ | include "tekton.port_lookup" }}
+              containerPort: {{ $.Values.params.endpoints.ports.web.port }}
         {{- if $.Values.pod.probes.tekton_dashboard.tekton_dashboard.readiness.enabled }}
           readinessProbe:
             httpGet:
-              scheme: {{ tuple "tekton_dashboard" "internal" "web" $ | include "tekton.scheme_lookup" | upper }}
+              scheme: {{ $.Values.params.endpoints.ports.web.scheme | upper }}
               path: /readiness
-              port: {{ tuple "tekton_dashboard" "internal" "web" $ | include "tekton.port_lookup" }}
+              port: {{ $.Values.params.endpoints.ports.web.port }}
 {{ toYaml $.Values.pod.probes.tekton_dashboard.tekton_dashboard.readiness.params | nindent 12 }}
         {{- end }}
         {{- if $.Values.pod.probes.tekton_dashboard.tekton_dashboard.liveness.enabled }}
           livenessProbe:
             httpGet:
-              scheme: {{ tuple "tekton_dashboard" "internal" "web" $ | include "tekton.scheme_lookup" | upper }}
+              scheme: {{ $.Values.params.endpoints.ports.web.scheme | upper }}
               path: /health
-              port: {{ tuple "tekton_dashboard" "internal" "web" $ | include "tekton.port_lookup" }}
+              port: {{ $.Values.params.endpoints.ports.web.port }}
 {{ toYaml $.Values.pod.probes.tekton_dashboard.tekton_dashboard.liveness.params | nindent 12 }}
         {{- end }}
       volumes: []
-{{- end }}

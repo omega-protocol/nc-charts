@@ -1,22 +1,17 @@
-{{- if $.Values.manifests.rbac }}
 {{- $component := "triggers" -}}
 {{- $partof := "tekton-triggers" -}}
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels:  {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-triggers") | nindent 4 }}
   name: tekton-triggers-controller
   namespace: {{ $.Release.Namespace }}
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-triggers") | nindent 4 }}
   name: tekton-triggers-admin
 rules:
   - apiGroups:
@@ -108,9 +103,7 @@ rules:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-triggers") | nindent 4 }}
   name: tekton-triggers-admin
   namespace: {{ $.Release.Namespace }}
 rules:
@@ -138,9 +131,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-triggers") | nindent 4 }}
   name: tekton-triggers-controller-admin
 roleRef:
   kind: ClusterRole
@@ -173,9 +164,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: tekton-triggers-aggregate-edit
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-triggers") | nindent 4 }}
     rbac.authorization.k8s.io/aggregate-to-edit: "true"
     rbac.authorization.k8s.io/aggregate-to-admin: "true"
 rules:
@@ -201,9 +190,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: tekton-triggers-aggregate-view
-  labels:
-    app.kubernetes.io/component: {{ $component }}
-    app.kubernetes.io/part-of: {{ $partof }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-triggers") | nindent 4 }}
     rbac.authorization.k8s.io/aggregate-to-view: "true"
 rules:
   - apiGroups:
@@ -218,4 +205,3 @@ rules:
       - get
       - list
       - watch
-{{- end }}

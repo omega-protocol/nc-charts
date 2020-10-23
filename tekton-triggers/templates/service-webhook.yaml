@@ -1,14 +1,10 @@
-{{- if .Values.manifests.service_webhook }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: tekton-triggers-webhook
 spec:
-  selector:
-    release_group: {{ $.Values.release_group | default $.Release.Name }}
-    application: "tekton-triggers"
-    component: "webhook"
+  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 4 }}
   {{- if $.Values.network.node_port.enabled }}
   type: NodePort
   {{- if $.Values.network.external_policy_local }}
@@ -18,9 +14,8 @@ spec:
   ports:
   - name: https-webhook
     protocol: TCP
-    port: {{ tuple "tekton-triggers" "internal" "webhook" $ | include "tekton.port_lookup" }}
-    targetPort:  {{ tuple "tekton-triggers" "target" "webhook" $ | include "tekton.port_lookup" }}
+    port: {{ $.Values.params.endpoints.ports.webhook.port }}
+    targetPort: {{ $.Values.params.endpoints.ports.webhook.target }}
     {{- if $.Values.network.node_port.enabled }}
     nodePort: {{ $.Values.network.node_port.port }}
     {{- end }}
-{{- end }}

@@ -3,8 +3,8 @@ kind: CustomResourceDefinition
 metadata:
   name: extensions.dashboard.tekton.dev
   labels:
-    app.kubernetes.io/component: dashboard
-    app.kubernetes.io/part-of: tekton-dashboard
+    app.kubernetes.io/component: "tekton"
+    app.kubernetes.io/part-of: "tekton-dashboard"
 spec:
   additionalPrinterColumns:
   - JSONPath: .spec.apiVersion

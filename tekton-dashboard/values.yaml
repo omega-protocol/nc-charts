@@ -1,5 +1,5 @@
 ---
-conf:
+config:
   args:
     csrf_secure_cookie: false
     external-logs: ''
@@ -10,55 +10,29 @@ conf:
     openshift: false
     read_only: false
     stream_logs: false
-dependencies:
-  dynamic:
-    common: {}
-  static:
-    tekton_dashboard:
-      services: []
-endpoints:
-  cluster_domain_suffix: cluster.local
-  tekton_dashboard:
-    host_fqdn_override:
-      default: null
-    hosts:
-      default: tekton-int
-      public: tekton
-    name: tekton
-    path:
-      default: null
-    port:
-      web:
-        default: 9097
-    scheme:
-      default: http
 images:
-  pull_policy: IfNotPresent
-  tags:
-    tekton_dashboard: 'gcr.io/tekton-releases/github.com/tektoncd/dashboard/cmd/dashboard:v0.10.1'
-jobs: null
-labels:
-  tekton_dashboard:
-    node_selector_key: teckton
-    node_selector_value: enabled
-manifests:
-  deployment: true
-  poddisruptionbudget: false
-  rbac: true
-  service: true
+  applications:
+    tekton_dashboard:
+      name: tektoncd/dashboard/cmd/dashboard
+      repo: gcr.io/tekton-releases/github.com
+      tag: v0.10.1
+  pull:
+    policy: IfNotPresent
 network:
-  dashboard:
-    ingress:
-      annotations:
-        nginx.ingress.kubernetes.io/rewrite-target: /
-      classes:
-        cluster: nginx-cluster
-        namespace: nginx
-      public: true
-  external_policy_local: false
   node_port:
     enabled: false
     port: 32000
+node_labels:
+  tekton_dashboard:
+    - key: node-role.kubernetes.io/master
+      value: ''
+params:
+  endpoints:
+    hostname: tekton-dashboard
+    ports:
+      web:
+        port: 9097
+        scheme: http
 pod:
   affinity:
     anti:
@@ -107,10 +81,4 @@ pod:
       requests:
         cpu: 100m
         memory: 128Mi
-  security_context:
-    tekton_dashboard:
-      pod:
-        runAsNonRoot: true
-        runAsUser: 65532
 release_group: null
-secrets: null
