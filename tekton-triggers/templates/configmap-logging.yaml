@@ -1,0 +1,13 @@
+{{- if $.Values.manfiests.configmap_logging }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-logging-triggers
+data:
+  zap-logger-config: |
+    {{ $.Values.conf.zap_logger_config | toJson }}
+  loglevel.controller: {{ $.Values.conf.loglevel.controller | quote }}
+  loglevel.webhook: {{ $.Values.conf.loglevel.webhook | quote }}
+  loglevel.eventlistener: {{ $.Values.conf.loglevel.eventlistener | quote }}
+{{- end }}

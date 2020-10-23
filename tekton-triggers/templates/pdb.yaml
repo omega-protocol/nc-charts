@@ -1,0 +1,12 @@
+{{- if .Values.manifests.poddisruptionbudget }}
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: horizon
+spec:
+  minAvailable: {{ $.Values.pod.lifecycle.disruption_budget.dashboard.min_available }}
+  selector:
+    matchLabels:
+{{- tuple $ "tekton-dashboard" "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 6 }}
+{{- end }}

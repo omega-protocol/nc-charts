@@ -1,0 +1,67 @@
+{{- if $.Values.manifests.deployment_webhook }}
+{{- $mount_webhook := $.Values.pod.mounts.tekton_webhook.tekton_webhook -}}
+{{- $mount_webhook_init := $.Values.pod.mounts.tekton_webhook.init_container -}}
+{{- $serviceAccountName := "tekton-triggers-controller" -}}
+{{- $applicationName := "tekton-triggers" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $applicationName }}
+  annotations:
+    {{ tuple $ | include "helm-toolkit.snippets.release_uuid" }}
+  labels:
+{{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 4 }}
+spec:
+  replicas: {{ $.Values.pod.replicas.dashboard }}
+  selector:
+    matchLabels:
+{{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 6 }}
+{{- tuple $ | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | nindent 2 }}
+  template:
+    metadata:
+      labels:
+{{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 8 }}
+      annotations:
+{{- tuple $ | include "helm-toolkit.snippets.release_uuid" | nindent 8 }}
+    spec:
+      serviceAccountName: {{ $serviceAccountName }}
+{{ dict "envAll" $ "application" "tekton_webhook" | include "helm-toolkit.snippets.kubernetes_pod_security_context" | indent 6 }}
+      affinity:
+{{- tuple $ "horizon" "server" | include "helm-toolkit.snippets.kubernetes_pod_anti_affinity" | nindent 8 }}
+      nodeSelector:
+        {{ $.Values.labels.tekton_webhook.node_selector_key }}: {{ $.Values.labels.tekton_webhook.node_selector_value }}
+      terminationGracePeriodSeconds: {{ $.Values.pod.lifecycle.termination_grace_period.dashboard.timeout | default "30" }}
+      initContainers:
+{{- tuple $ "tekton_dashboard" $mount_webhook_init | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | nindent 8 }}
+      containers:
+        - name: tekton-triggers-webhook
+{{- tuple $ "tekton_webhook" | include "helm-toolkit.snippets.image" | nindent 10 }}
+{{- tuple $ $.Values.pod.resources.tekton_webhook | include "helm-toolkit.snippets.kubernetes_resources" | nindent 10 }}
+          env:
+            - name: SYSTEM_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: CONFIG_LOGGING_NAME
+              value: config-logging-triggers
+            - name: WEBHOOK_SERVICE_NAME
+              value: tekton-triggers-webhook
+            - name: WEBHOOK_SECRET_NAME
+              value: triggers-webhook-certs
+            - name: METRICS_DOMAIN
+              value: tekton.dev/triggers
+          ports:
+            - name: web
+              containerPort: {{ tuple "tekton-dashboard" "internal" "web" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+{{- if $mount_webhook.volumeMounts }}
+          volumeMounts:
+{{ toYaml $mount_webhook.volumeMounts | indent 12 }}
+{{- end }}
+{{- if $mount_webhook.volumes }}
+      volumes:
+{{ toYaml $mount_webhook.volumes | indent 8 }}
+{{- else }}
+      volumes: []
+{{- end }}
+{{- end }}
