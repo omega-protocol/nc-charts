@@ -16,7 +16,7 @@ TASK  := build
 HELM  := helm
 
 EXCLUDES := helm-toolkit doc tests tools logs tmp zuul.d releasenotes
-CHARTS := helm-toolkit $(filter-out $(EXCLUDES), $(patsubst %/.,%,$(wildcard */.)))
+CHARTS := $(filter-out $(EXCLUDES), $(patsubst %/.,%,$(wildcard */.)))
 
 .PHONY: $(EXCLUDES) $(CHARTS)
 all: $(CHARTS)
@@ -51,4 +51,4 @@ t:
 	$(HELM) template tekton-triggers tekton-triggers -n tekton-pipelines
 
 co:
-	git add --all && git amend --no-edit && git fp
+	git add --all && git amend --no-edit

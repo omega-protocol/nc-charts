@@ -3,10 +3,12 @@
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
-  name: horizon
+  name: tekton-dashboard
 spec:
   minAvailable: {{ $.Values.pod.lifecycle.disruption_budget.dashboard.min_available }}
   selector:
     matchLabels:
-{{- tuple $ "tekton-dashboard" "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 6 }}
+      release_group: {{ $.Values.release_group | default $.Release.Name }}
+      application: "tekton-dashboard"
+      component: "server"
 {{- end }}

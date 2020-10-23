@@ -1,44 +1,55 @@
 {{- if $.Values.manifests.deployment_webhook }}
-{{- $mount_webhook := $.Values.pod.mounts.tekton_webhook.tekton_webhook -}}
-{{- $mount_webhook_init := $.Values.pod.mounts.tekton_webhook.init_container -}}
-{{- $serviceAccountName := "tekton-triggers-controller" -}}
+{{- $serviceAccountName := "tekton-triggers-webhook" -}}
 {{- $applicationName := "tekton-triggers" -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $applicationName }}-webhook
-  annotations:
-    {{ tuple $ | include "helm-toolkit.snippets.release_uuid" }}
   labels:
-{{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 4 }}
+    release_group: {{ $.Values.release_group | default $.Release.Name }}
+    application: "tekton-triggers"
+    component: "webhook"
 spec:
   replicas: {{ $.Values.pod.replicas.webhook }}
   selector:
     matchLabels:
-{{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 6 }}
-{{- tuple $ | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | nindent 2 }}
+      release_group: {{ $.Values.release_group | default $.Release.Name }}
+      application: "tekton-triggers"
+      component: "webhook"
+{{- with $.Values.pod.lifecycle.upgrades.deployments }}
+  revisionHistoryLimit: {{ .revision_history }}
+  strategy:
+    type: {{ .pod_replacement_strategy }}
+  {{- if eq .pod_replacement_strategy "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .rolling_update.max_unavailable }}
+      maxSurge: {{ .rolling_update.max_surge }}
+  {{- end }}
+{{- end }}
   template:
     metadata:
       labels:
-{{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 8 }}
+        release_group: {{ $.Values.release_group | default $.Release.Name }}
+        application: "tekton-triggers"
+        component: "webhook"
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
-{{- tuple $ | include "helm-toolkit.snippets.release_uuid" | nindent 8 }}
     spec:
       serviceAccountName: {{ $serviceAccountName }}
-{{ dict "envAll" $ "application" "tekton_webhook" | include "helm-toolkit.snippets.kubernetes_pod_security_context" | indent 6 }}
       affinity:
-{{- tuple $ "tekton_triggers" "webhook" | include "helm-toolkit.snippets.kubernetes_pod_anti_affinity" | nindent 8 }}
+{{- tuple $ "tekton_triggers" "webhook" | include "tekton.pod_anti_affinity" | nindent 8 }}
       nodeSelector:
         {{ $.Values.labels.tekton_webhook.node_selector_key }}: {{ $.Values.labels.tekton_webhook.node_selector_value }}
       terminationGracePeriodSeconds: {{ $.Values.pod.lifecycle.termination_grace_period.webhook.timeout | default "30" }}
-      initContainers:
-{{- tuple $ "tekton_webhook" $mount_webhook_init | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | nindent 8 }}
       containers:
         - name: tekton-triggers-webhook
-{{- tuple $ "tekton_webhook" | include "helm-toolkit.snippets.image" | nindent 10 }}
-{{- tuple $ $.Values.pod.resources.tekton_webhook | include "helm-toolkit.snippets.kubernetes_resources" | nindent 10 }}
+          image: {{ index $.Values.images.tags.tekton_webhook | quote }}
+          imagePullPolicy: {{ $.Values.images.pull_policy }}
+        {{- if $.Values.pod.resources.enabled }}
+          resources:
+{{ toYaml $.Values.pod.resources.tekton_webhook | trim | indent 12 }}
+        {{- end }}
           env:
             - name: SYSTEM_NAMESPACE
               valueFrom:
@@ -54,20 +65,13 @@ spec:
               value: tekton.dev/triggers
           ports:
             - name: metrics
-              containerPort: {{ tuple "tekton-triggers" "internal" "metrics" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+              containerPort: {{ tuple "tekton-triggers" "internal" "metrics" $ | include "tekton.port_lookup" }}
             - name: profiling
-              containerPort: {{ tuple "tekton-triggers" "internal" "profiling" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+              containerPort: {{ tuple "tekton-triggers" "internal" "profiling" $ | include "tekton.port_lookup" }}
             - name: https-webhook
-              containerPort: {{ tuple "tekton-triggers" "target" "webhook" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
-{{- dict "envAll" $ "application" "tekton_triggers" "container" "webhook" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
-{{- if $mount_webhook.volumeMounts }}
-          volumeMounts:
-{{ toYaml $mount_webhook.volumeMounts | indent 12 }}
-{{- end }}
-{{- if $mount_webhook.volumes }}
-      volumes:
-{{ toYaml $mount_webhook.volumes | indent 8 }}
-{{- else }}
+              containerPort: {{ tuple "tekton-triggers" "target" "webhook" $ | include "tekton.port_lookup" }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 65532
       volumes: []
-{{- end }}
 {{- end }}

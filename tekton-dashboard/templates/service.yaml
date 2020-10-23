@@ -6,7 +6,9 @@ metadata:
   name: tekton-dashboard
 spec:
   selector:
-{{ tuple $ "tekton-dashboard" "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
+    release_group: {{ $.Values.release_group | default $.Release.Name }}
+    application: "tekton-dashboard"
+    component: "server"
   {{- if $.Values.network.node_port.enabled }}
   type: NodePort
   {{- if $.Values.network.external_policy_local }}
@@ -16,8 +18,8 @@ spec:
   ports:
   - name: web
     protocol: TCP
-    port: {{ tuple "tekton-dashboard" "internal" "web" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
-    targetPort:  {{ tuple "tekton-dashboard" "internal" "web" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+    port: {{ tuple "tekton-dashboard" "internal" "web" $ | include "tekton.port_lookup" }}
+    targetPort:  {{ tuple "tekton-dashboard" "internal" "web" $ | include "tekton.port_lookup" }}
     {{- if $.Values.network.node_port.enabled }}
     nodePort: {{ $.Values.network.node_port.port }}
     {{- end }}

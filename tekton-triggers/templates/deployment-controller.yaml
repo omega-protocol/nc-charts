@@ -1,6 +1,4 @@
 {{- if $.Values.manifests.deployment_controller }}
-{{- $mount_controller := $.Values.pod.mounts.tekton_controller.tekton_controller -}}
-{{- $mount_controller_init := $.Values.pod.mounts.tekton_controller.init_container -}}
 {{- $serviceAccountName := "tekton-triggers-controller" -}}
 {{- $applicationName := "tekton-triggers" -}}
 ---
@@ -8,36 +6,50 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $applicationName }}-controller
-  annotations:
-    {{ tuple $ | include "helm-toolkit.snippets.release_uuid" }}
   labels:
-{{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 4 }}
+    release_group: {{ $.Values.release_group | default $.Release.Name }}
+    application: "tekton-triggers"
+    component: "controller"
 spec:
   replicas: {{ $.Values.pod.replicas.controller }}
   selector:
     matchLabels:
-{{- tuple $ $applicationName "controller" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 6 }}
-{{- tuple $ | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | nindent 2 }}
+      release_group: {{ $.Values.release_group | default $.Release.Name }}
+      application: "tekton-triggers"
+      component: "controller"
+{{- with .Values.pod.lifecycle.upgrades.deployments }}
+  revisionHistoryLimit: {{ .revision_history }}
+  strategy:
+    type: {{ .pod_replacement_strategy }}
+  {{- if eq .pod_replacement_strategy "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .rolling_update.max_unavailable }}
+      maxSurge: {{ .rolling_update.max_surge }}
+  {{- end }}
+{{- end }}
   template:
     metadata:
       labels:
-{{- tuple $ $applicationName "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | nindent 8 }}
+        release_group: {{ $.Values.release_group | default $.Release.Name }}
+        application: "tekton-triggers"
+        component: "controller"
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
-{{- tuple $ | include "helm-toolkit.snippets.release_uuid" | nindent 8 }}
     spec:
       serviceAccountName: {{ $serviceAccountName }}
       affinity:
-{{- tuple $ "tekton_triggers" "controller" | include "helm-toolkit.snippets.kubernetes_pod_anti_affinity" | nindent 8 }}
+{{- tuple $ "tekton_triggers" "controller" | include "tekton.pod_anti_affinity" | nindent 8 }}
       nodeSelector:
         {{ $.Values.labels.tekton_controller.node_selector_key }}: {{ $.Values.labels.tekton_controller.node_selector_value }}
       terminationGracePeriodSeconds: {{ $.Values.pod.lifecycle.termination_grace_period.controller.timeout | default "30" }}
-      initContainers:
-{{- tuple $ "tekton_controller" $mount_controller_init | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | nindent 8 }}
       containers:
         - name: tekton-triggers-controller
-{{- tuple $ "tekton_controller" | include "helm-toolkit.snippets.image" | nindent 10 }}
-{{- tuple $ $.Values.pod.resources.tekton_controller | include "helm-toolkit.snippets.kubernetes_resources" | nindent 10 }}
+          image: {{ index $.Values.images.tags.tekton_controller | quote }}
+          imagePullPolicy: {{ $.Values.images.pull_policy }}
+        {{- if $.Values.pod.resources.enabled }}
+          resources:
+{{ toYaml $.Values.pod.resources.tekton_controller | trim | indent 12 }}
+        {{- end }}
           args:
           - -logtostderr
           - -stderrthreshold
@@ -61,15 +73,8 @@ spec:
               value: config-observability-triggers
             - name: METRICS_DOMAIN
               value: tekton.dev/triggers
-{{- dict "envAll" $ "application" "tekton_triggers" "container" "controller" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
-{{- if $mount_controller.volumeMounts }}
-          volumeMounts:
-{{ toYaml $mount_controller.volumeMounts | indent 12 }}
-{{- end }}
-{{- if $mount_controller.volumes }}
-      volumes:
-{{ toYaml $mount_controller.volumes | indent 8 }}
-{{- else }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 65532
       volumes: []
-{{- end }}
 {{- end }}
