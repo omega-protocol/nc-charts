@@ -35,7 +35,7 @@ Labels to use on {deploy|sts}.spec.selector.matchLabels and svc.spec.selector
 {{- define "helpers.labels.matchLabels" -}}
 {{- $Global := index . "Global" -}}
 app.kubernetes.io/name: {{ include "helpers.labels.name" $Global }}
-app.kubernetes.io/instance: {{ $Global.Release.Name }}
+app.kubernetes.io/instance: {{ $Global.Values.release_group | default $Global.Release.Name }}
 {{- end -}}
 
 {{/*
@@ -58,5 +58,4 @@ app.kubernetes.io/component: {{ $Component }}
 app.kubernetes.io/version: {{ $Version }}
 {{- end }}
 helm.sh/chart: {{ include "helpers.labels.chart" $Global }}
-release_group: {{ $Global.Values.release_group | default $Global.Release.Name }}
 {{- end -}}
