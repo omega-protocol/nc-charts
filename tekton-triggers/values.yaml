@@ -74,11 +74,4 @@ node_labels:
     - key: node-role.kubernetes.io/master
       value: ''
 
-over_rides:
-  deployment:
-    controller:
-      spec:
-        replicas: 1
-    webhook:
-      spec:
-        replicas: 1
+over_rides: {}

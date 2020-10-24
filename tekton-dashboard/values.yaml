@@ -32,8 +32,4 @@ params:
         port: 9097
         scheme: http
 
-over_rides:
-  deployment:
-    dashboard:
-      spec:
-        replicas: 1
+over_rides: {}
