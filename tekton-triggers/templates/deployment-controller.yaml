@@ -1,3 +1,4 @@
+{{- define "deployment-controller" -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -5,19 +6,15 @@ metadata:
   name: tekton-triggers-controller
   labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
 spec:
-  replicas: {{ $.Values.pod.replicas.controller }}
+  replicas: 1
   selector:
     matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 6 }}
-{{- with .Values.pod.lifecycle.upgrades.deployments }}
-  revisionHistoryLimit: {{ .revision_history }}
+  revisionHistoryLimit: 3
   strategy:
-    type: {{ .pod_replacement_strategy }}
-  {{- if eq .pod_replacement_strategy "RollingUpdate" }}
+    type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: {{ .rolling_update.max_unavailable }}
-      maxSurge: {{ .rolling_update.max_surge }}
-  {{- end }}
-{{- end }}
+      maxUnavailable: 1
+      maxSurge: 3
   template:
     metadata:
       labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 8 }}
@@ -25,16 +22,12 @@ spec:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
     spec:
       serviceAccountName: tekton-triggers-controller
-      affinity:
-{{- tuple $ "tekton_triggers" "controller" | include "tekton.pod_anti_affinity" | nindent 8 }}
-      nodeSelector:
-{{- include "helpers.pod.node_selector" ( dict "Global" $ "Application" "tekton_controller" ) | nindent 8 }}
-      terminationGracePeriodSeconds: {{ $.Values.pod.lifecycle.termination_grace_period.controller.timeout | default "30" }}
+      nodeSelector: {{- include "helpers.pod.node_selector" ( dict "Global" $ "Application" "tekton_controller" ) | nindent 8 }}
+      terminationGracePeriodSeconds: 30
       containers:
         - name: tekton-triggers-controller
           image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_controller" ) }}
           imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
-{{- include "helpers.container.resources" ( dict "Global" $ "Application" "tekton_controller" ) | nindent 10 }}
           args:
           - -logtostderr
           - -stderrthreshold
@@ -62,3 +55,6 @@ spec:
             allowPrivilegeEscalation: false
             runAsUser: 65532
       volumes: []
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "deployment-controller" ) }}

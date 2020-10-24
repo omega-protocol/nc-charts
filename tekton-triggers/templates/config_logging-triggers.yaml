@@ -1,3 +1,4 @@
+{{- define "config_logging-triggers" -}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -9,3 +10,6 @@ data:
   loglevel.controller: {{ $.Values.config.loglevel.controller | quote }}
   loglevel.webhook: {{ $.Values.config.loglevel.webhook | quote }}
   loglevel.eventlistener: {{ $.Values.config.loglevel.eventlistener | quote }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "config_logging-triggers" ) }}

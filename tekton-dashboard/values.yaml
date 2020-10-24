@@ -10,6 +10,7 @@ config:
     openshift: false
     read_only: false
     stream_logs: false
+
 images:
   applications:
     tekton_dashboard:
@@ -18,64 +19,21 @@ images:
       tag: v0.10.1
   pull:
     policy: IfNotPresent
-network:
-  node_port:
-    enabled: false
-    port: 32000
+
 node_labels:
   tekton_dashboard:
     - key: node-role.kubernetes.io/master
       value: ''
+
 params:
   endpoints:
-    hostname: tekton-dashboard
     ports:
       web:
         port: 9097
         scheme: http
-pod:
-  affinity:
-    anti:
-      topologyKey:
-        default: kubernetes.io/hostname
-      type:
-        default: preferredDuringSchedulingIgnoredDuringExecution
-      weight:
-        default: 10
-  lifecycle:
-    termination_grace_period:
-      dashboard:
-        timeout: 30
-    upgrades:
-      deployments:
-        pod_replacement_strategy: RollingUpdate
-        revision_history: 3
-        rolling_update:
-          max_surge: 3
-          max_unavailable: 1
-  probes:
-    tekton_dashboard:
-      tekton_dashboard:
-        liveness:
-          enabled: true
-          params:
-            initialDelaySeconds: 50
-            periodSeconds: 20
-            timeoutSeconds: 5
-        readiness:
-          enabled: true
-          params:
-            initialDelaySeconds: 15
-            periodSeconds: 10
-  replicas:
-    dashboard: 1
-  resources:
-    enabled: false
-    tekton_dashboard:
-      limits:
-        cpu: 2000m
-        memory: 1024Mi
-      requests:
-        cpu: 100m
-        memory: 128Mi
-release_group: null
+
+over_rides:
+  deployment:
+    dashboard:
+      spec:
+        replicas: 1

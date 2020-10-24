@@ -1,3 +1,4 @@
+{{- define "deployment-dashboard" -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -5,19 +6,15 @@ metadata:
   name: {{ template "helpers.labels.fullname" $ }}
   labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
 spec:
-  replicas: {{ $.Values.pod.replicas.dashboard }}
+  replicas: 1
   selector:
     matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 6 }}
-{{- with $.Values.pod.lifecycle.upgrades.deployments }}
-  revisionHistoryLimit: {{ .revision_history }}
+  revisionHistoryLimit: 3
   strategy:
-    type: {{ .pod_replacement_strategy }}
-  {{- if eq .pod_replacement_strategy "RollingUpdate" }}
+    type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: {{ .rolling_update.max_unavailable }}
-      maxSurge: {{ .rolling_update.max_surge }}
-  {{- end }}
-{{- end }}
+      maxUnavailable: 1
+      maxSurge: 3
   template:
     metadata:
       labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 8 }}
@@ -26,16 +23,12 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532
-      affinity:
-{{- tuple $ "tekton_dashboard" "server" | include "tekton.pod_anti_affinity" | nindent 8 }}
-      nodeSelector:
-{{- include "helpers.pod.node_selector" ( dict "Global" $ "Application" "tekton_dashboard" ) | nindent 8 }}
-      terminationGracePeriodSeconds: {{ $.Values.pod.lifecycle.termination_grace_period.dashboard.timeout | default "30" }}
+      nodeSelector: {{- include "helpers.pod.node_selector" ( dict "Global" $ "Application" "tekton_dashboard" ) | nindent 8 }}
+      terminationGracePeriodSeconds: 30
       containers:
         - name: tekton-dashboard
           image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_dashboard" ) }}
           imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
-{{- include "helpers.container.resources" ( dict "Global" $ "Application" "tekton_dashboard" ) | nindent 10 }}
           args:
           - --port={{ $.Values.params.endpoints.ports.web.port }}
           - --logout-url={{ $.Values.config.args.logout_url }}
@@ -57,20 +50,22 @@ spec:
           ports:
             - name: web
               containerPort: {{ $.Values.params.endpoints.ports.web.port }}
-        {{- if $.Values.pod.probes.tekton_dashboard.tekton_dashboard.readiness.enabled }}
           readinessProbe:
             httpGet:
               scheme: {{ $.Values.params.endpoints.ports.web.scheme | upper }}
               path: /readiness
               port: {{ $.Values.params.endpoints.ports.web.port }}
-{{ toYaml $.Values.pod.probes.tekton_dashboard.tekton_dashboard.readiness.params | nindent 12 }}
-        {{- end }}
-        {{- if $.Values.pod.probes.tekton_dashboard.tekton_dashboard.liveness.enabled }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
           livenessProbe:
             httpGet:
               scheme: {{ $.Values.params.endpoints.ports.web.scheme | upper }}
               path: /health
               port: {{ $.Values.params.endpoints.ports.web.port }}
-{{ toYaml $.Values.pod.probes.tekton_dashboard.tekton_dashboard.liveness.params | nindent 12 }}
-        {{- end }}
+            initialDelaySeconds: 50
+            periodSeconds: 20
+            timeoutSeconds: 5
       volumes: []
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "deployment-dashboard" ) }}

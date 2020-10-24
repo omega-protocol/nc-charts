@@ -37,7 +37,6 @@ config:
 
 params:
   endpoints:
-    hostname: tekton-triggers
     ports:
       metrics:
         port: 9090
@@ -75,43 +74,11 @@ node_labels:
     - key: node-role.kubernetes.io/master
       value: ''
 
-network:
-  node_port:
-    enabled: false
-    port: 32000
-
-pod:
-  affinity:
-    anti:
-      topologyKey:
-        default: kubernetes.io/hostname
-      type:
-        default: preferredDuringSchedulingIgnoredDuringExecution
-      weight:
-        default: 10
-  lifecycle:
-    termination_grace_period:
-      controller:
-        timeout: 30
-      webhook:
-        timeout: 30
-    upgrades:
-      deployments:
-        pod_replacement_strategy: RollingUpdate
-        revision_history: 3
-        rolling_update:
-          max_surge: 3
-          max_unavailable: 1
-  replicas:
-    controller: 1
-    webhook: 1
-  resources:
-    enabled: false
-    tekton_dashboard:
-      limits:
-        cpu: 2000m
-        memory: 1024Mi
-      requests:
-        cpu: 100m
-        memory: 128Mi
-release_group: null
+over_rides:
+  deployment:
+    controller:
+      spec:
+        replicas: 1
+    webhook:
+      spec:
+        replicas: 1

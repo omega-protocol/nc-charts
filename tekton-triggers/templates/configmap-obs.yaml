@@ -1,7 +1,0 @@
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: config-observability-triggers
-data:
-{{- $.Values.configobservability | toYaml | nindent 2 }}
