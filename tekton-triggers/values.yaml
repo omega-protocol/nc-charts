@@ -55,15 +55,15 @@ images:
     tekton_controller:
       name: tektoncd/triggers/cmd/controller
       repo: gcr.io/tekton-releases/github.com
-      tag: v0.9.1
+      tag: v0.9.1@sha256:89e105cacb853ef8866baf0e2f0030651ec719e9bdc7cf56972edbd68dbd4779
     tekton_eventlistener:
       name: tektoncd/triggers/cmd/eventlistenersink
       repo: gcr.io/tekton-releases/github.com
-      tag: v0.9.1
+      tag: v0.9.1@sha256:b687fc18b818f6e031083735b1833e6db3ba18d5113cfdc1ec8eb3c980e0f67d
     tekton_webhook:
       name: tektoncd/triggers/cmd/webhook
       repo: gcr.io/tekton-releases/github.com
-      tag: v0.9.1
+      tag: v0.9.1@sha256:496bea4b0524c21be6bfe4eb5e99f92119cea3e58a93ed06a76536d7a1d9032c
   pull:
     policy: IfNotPresent
 
@@ -90,9 +90,6 @@ pod:
       weight:
         default: 10
   lifecycle:
-    disruption_budget:
-      dashboard:
-        min_available: 0
     termination_grace_period:
       controller:
         timeout: 30
