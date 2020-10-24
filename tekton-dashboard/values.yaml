@@ -43,9 +43,6 @@ pod:
       weight:
         default: 10
   lifecycle:
-    disruption_budget:
-      dashboard:
-        min_available: 0
     termination_grace_period:
       dashboard:
         timeout: 30

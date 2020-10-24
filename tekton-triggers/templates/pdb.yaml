@@ -1,9 +1,0 @@
----
-apiVersion: policy/v1beta1
-kind: PodDisruptionBudget
-metadata:
-  name: tekton-triggers
-spec:
-  minAvailable: {{ $.Values.pod.lifecycle.disruption_budget.dashboard.min_available }}
-  selector:
-    matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 6 }}

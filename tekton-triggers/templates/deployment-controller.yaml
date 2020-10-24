@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "helpers.labels.fullname" $ }}-controller
+  name: tekton-triggers-controller
   labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
 spec:
   replicas: {{ $.Values.pod.replicas.controller }}
@@ -24,7 +24,7 @@ spec:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
     spec:
-      serviceAccountName: {{ template "helpers.labels.fullname" . }}
+      serviceAccountName: tekton-triggers-controller
       affinity:
 {{- tuple $ "tekton_triggers" "controller" | include "tekton.pod_anti_affinity" | nindent 8 }}
       nodeSelector:
@@ -40,7 +40,7 @@ spec:
           - -stderrthreshold
           - {{ $.Values.config.controller.stderrthreshold | quote }}
           - -el-image
-          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_eventlistener" ) | quote }}
+          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_eventlistener" ) }}
           - -el-port
           - {{ $.Values.config.controller.el_port | quote }}
           - -period-seconds

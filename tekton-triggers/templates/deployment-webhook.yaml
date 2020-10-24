@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "helpers.labels.fullname" $ }}-webhook
+  name: tekton-triggers-webhook
   labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
 spec:
   replicas: {{ $.Values.pod.replicas.webhook }}
@@ -24,7 +24,7 @@ spec:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
     spec:
-      serviceAccountName: {{ template "helpers.labels.fullname" . }}
+      serviceAccountName: tekton-triggers-controller
       affinity:
 {{- tuple $ "tekton_triggers" "webhook" | include "tekton.pod_anti_affinity" | nindent 8 }}
       nodeSelector:
