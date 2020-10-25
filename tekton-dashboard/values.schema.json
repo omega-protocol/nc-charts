@@ -49,7 +49,14 @@
                 "type": "string"
               },
               "tag": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
               }
             }
           }
