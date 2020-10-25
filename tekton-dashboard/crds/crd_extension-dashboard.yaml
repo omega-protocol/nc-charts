@@ -18,6 +18,7 @@ spec:
     - tekton-dashboard
     kind: Extension
     plural: extensions
+    singular: extension
     shortNames:
     - ext
     - exts
