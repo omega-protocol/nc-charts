@@ -3,6 +3,9 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   name: triggertemplates.triggers.tekton.dev
+  # for helm 2
+  annotations:
+    "helm.sh/hook": "pre-install"
   labels:
     app.kubernetes.io/component: tekton
     app.kubernetes.io/name: triggertemplates
