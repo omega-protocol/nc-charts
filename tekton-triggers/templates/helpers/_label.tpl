@@ -58,5 +58,4 @@ app.kubernetes.io/component: {{ $Component }}
 app.kubernetes.io/version: {{ $Version }}
 {{- end }}
 helm.sh/chart: {{ include "helpers.labels.chart" $Global }}
-release_group: {{ $Global.Values.release_group | default $Global.Release.Name }}
 {{- end -}}

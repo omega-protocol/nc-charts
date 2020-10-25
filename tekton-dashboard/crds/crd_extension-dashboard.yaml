@@ -1,12 +1,12 @@
-{{- define "crd_extension-dashboard" -}}
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   name: extensions.dashboard.tekton.dev
-  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
-  annotations:
-    "helm.sh/hook": "crd-install"
+  labels:
+    app.kubernetes.io/component: tekton
+    app.kubernetes.io/name: extensions
+    app.kubernetes.io/part-of: tekton-dashboard
 spec:
   additionalPrinterColumns:
   - JSONPath: .spec.apiVersion
@@ -44,5 +44,3 @@ spec:
     served: true
     storage: true
 ...
-{{- end -}}
-{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "crd_extension-dashboard" ) }}

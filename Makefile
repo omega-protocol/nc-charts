@@ -13,7 +13,7 @@
 # It's necessary to set this because some environments don't link sh -> bash.
 SHELL := /bin/bash
 TASK  := build
-HELM  := helm
+HELM  := helmc
 
 EXCLUDES := helm-toolkit doc tests tools logs tmp zuul.d releasenotes
 CHARTS := $(filter-out $(EXCLUDES), $(patsubst %/.,%,$(wildcard */.)))
