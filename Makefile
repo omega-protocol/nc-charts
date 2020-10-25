@@ -13,7 +13,7 @@
 # It's necessary to set this because some environments don't link sh -> bash.
 SHELL := /bin/bash
 TASK  := build
-HELM  := helmc
+HH    := helmc
 
 EXCLUDES := helm-toolkit doc tests tools logs tmp zuul.d releasenotes
 CHARTS := $(filter-out $(EXCLUDES), $(patsubst %/.,%,$(wildcard */.)))
@@ -30,13 +30,13 @@ $(CHARTS):
 
 init-%:
 	if [ -f $*/Makefile ]; then make -C $*; fi
-	if [ -f $*/requirements.yaml ]; then $(HELM) dep up $*; fi
+	if [ -f $*/requirements.yaml ]; then $(HH) dep up $*; fi
 
 lint-%: init-%
-	if [ -d $* ]; then $(HELM)  lint $*; fi
+	if [ -d $* ]; then $(HH)  lint $*; fi
 
 build-%: lint-%
-	if [ -d $* ]; then $(HELM)  package $*; fi
+	if [ -d $* ]; then $(HH)  package $*; fi
 
 clean:
 	@echo "Clean all build artifacts"
@@ -46,9 +46,9 @@ clean:
 
 .PHONY: d t
 d:
-	$(HELM) template tekton-dashboard tekton-dashboard -n tekton-pipelines
+	$(HH) template tekton-dashboard tekton-dashboard -n tekton-pipelines
 t:
-	$(HELM) template tekton-triggers tekton-triggers -n tekton-pipelines
+	$(HH) template tekton-triggers tekton-triggers -n tekton-pipelines
 
 co:
 	git add --all && git amend --no-edit
