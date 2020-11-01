@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: v2
 appVersion: v0.9.1
 description: Tekton Triggers
 name: tekton-triggers
