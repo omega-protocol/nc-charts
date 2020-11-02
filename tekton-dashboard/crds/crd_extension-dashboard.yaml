@@ -11,14 +11,14 @@ spec:
   group: dashboard.tekton.dev
   names:
     categories:
-    - tekton
-    - tekton-dashboard
+      - tekton
+      - tekton-dashboard
     kind: Extension
     plural: extensions
     singular: extension
     shortNames:
-    - ext
-    - exts
+      - ext
+      - exts
   preserveUnknownFields: false
   scope: Namespaced
   versions:
@@ -26,18 +26,18 @@ spec:
     served: true
     storage: true
     additionalPrinterColumns:
-    - jsonPath: .spec.apiVersion
-      name: API version
-      type: string
-    - jsonPath: .spec.name
-      name: Kind
-      type: string
-    - jsonPath: .spec.displayname
-      name: Display name
-      type: string
-    - jsonPath: .metadata.creationTimestamp
-      name: Age
-      type: date
+      - jsonPath: .spec.apiVersion
+        name: API version
+        type: string
+      - jsonPath: .spec.name
+        name: Kind
+        type: string
+      - jsonPath: .spec.displayname
+        name: Display name
+        type: string
+      - jsonPath: .metadata.creationTimestamp
+        name: Age
+        type: date
     schema:
       openAPIV3Schema:
         type: object
